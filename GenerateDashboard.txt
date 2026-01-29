@@ -1,0 +1,187 @@
+Sub GenerateExecutiveDashboard()
+    ' =========================================================================
+    ' AUTOMATED EXECUTIVE DASHBOARD GENERATOR
+    ' Combines data from DB tabs into a single "Visually Perfect" Report
+    ' =========================================================================
+    
+    Dim wsReport As Worksheet
+    Dim wsProj As Worksheet, wsRes As Worksheet, wsAlloc As Worksheet
+    Dim wsMile As Worksheet, wsUpdate As Worksheet
+    
+    Dim lastRowProj As Long, i As Long
+    Dim projID As String, projName As String
+    Dim outRow As Long
+    
+    ' --- 1. SETUP SHEETS (Handle Errors if tabs missing) ---
+    On Error Resume Next
+    Set wsReport = ThisWorkbook.Sheets(">> REPORT <<")
+    If wsReport Is Nothing Then
+        Set wsReport = ThisWorkbook.Sheets.Add(Before:=ThisWorkbook.Sheets(1))
+        wsReport.Name = ">> REPORT <<"
+    End If
+    
+    Set wsProj = ThisWorkbook.Sheets("DB_Projects")
+    Set wsRes = ThisWorkbook.Sheets("DB_Resources")
+    Set wsAlloc = ThisWorkbook.Sheets("DB_Allocations")
+    Set wsMile = ThisWorkbook.Sheets("DB_Milestones")
+    Set wsUpdate = ThisWorkbook.Sheets("DB_Updates")
+    On Error GoTo 0
+    
+    ' --- 2. CLEAR OLD DATA & FORMATTING ---
+    wsReport.Cells.Clear
+    
+    ' --- 3. CREATE HEADERS ---
+    With wsReport
+        .Cells(1, 1).Value = "PROJECT IDENTITY"
+        .Cells(1, 2).Value = "LEADERSHIP"
+        .Cells(1, 3).Value = "STATUS"
+        .Cells(1, 4).Value = "MILESTONE ROADMAP"
+        .Cells(1, 5).Value = "RESOURCE & CAPACITY"
+        .Cells(1, 6).Value = "EXECUTIVE SUMMARY (Goals, Risks, Updates)"
+        
+        ' Apply Header Style
+        With .Range("A1:F1")
+            .Font.Bold = True
+            .Font.Color = RGB(255, 255, 255)
+            .Interior.Color = RGB(15, 44, 76) ' Corporate Navy
+            .HorizontalAlignment = xlCenter
+            .VerticalAlignment = xlCenter
+            .RowHeight = 30
+        End With
+    End With
+    
+    ' --- 4. MAIN LOOP (Through Projects) ---
+    lastRowProj = wsProj.Cells(wsProj.Rows.Count, "A").End(xlUp).Row
+    outRow = 2 ' Start output at row 2
+    
+    For i = 2 To lastRowProj
+        projID = wsProj.Cells(i, 1).Value
+        projName = wsProj.Cells(i, 2).Value
+        
+        ' A. Get Project Info
+        wsReport.Cells(outRow, 1).Value = projName & vbNewLine & "(ID: " & projID & ")"
+        wsReport.Cells(outRow, 2).Value = "Lead: " & wsProj.Cells(i, 3).Value & vbNewLine & "PM: " & wsProj.Cells(i, 4).Value
+        
+        ' B. Get Status (Look up in DB_Updates)
+        Dim statusRAG As String, goal As String, risk As String, narrative As String
+        statusRAG = GetVLookupValue(wsUpdate, projID, 3) ' Col C is RAG
+        goal = GetVLookupValue(wsUpdate, projID, 4)      ' Col D is Goal
+        risk = GetVLookupValue(wsUpdate, projID, 6)      ' Col F is Risk
+        narrative = GetVLookupValue(wsUpdate, projID, 7) ' Col G is Narrative
+        
+        wsReport.Cells(outRow, 3).Value = UCase(statusRAG)
+        
+        ' C. Build Milestone List (Loop through DB_Milestones)
+        Dim mStr As String
+        mStr = GetMilestones(wsMile, projID)
+        wsReport.Cells(outRow, 4).Value = mStr
+        
+        ' D. Build Resource List (Loop Allocations + Lookup Name)
+        Dim rStr As String
+        rStr = GetResources(wsAlloc, wsRes, projID)
+        wsReport.Cells(outRow, 5).Value = rStr
+        
+        ' E. Build Narrative Box
+        Dim finalNarrative As String
+        finalNarrative = "GOAL: " & goal & vbNewLine & vbNewLine & _
+                         "UPDATE: " & narrative & vbNewLine & vbNewLine & _
+                         "RISK: " & risk
+        wsReport.Cells(outRow, 6).Value = finalNarrative
+        
+        outRow = outRow + 1
+    Next i
+    
+    ' --- 5. FINAL FORMATTING (The "Visually Perfect" Touch) ---
+    Call FormatReport(wsReport, outRow - 1)
+    
+    MsgBox "Dashboard Updated Successfully!", vbInformation
+End Sub
+
+' =========================================================
+' HELPER FUNCTIONS
+' =========================================================
+
+Function GetMilestones(ws As Worksheet, pID As String) As String
+    Dim lastRow As Long, k As Long
+    Dim s As String
+    Dim icon As String
+    lastRow = ws.Cells(ws.Rows.Count, "B").End(xlUp).Row ' Col B is Proj ID
+    
+    For k = 2 To lastRow
+        If ws.Cells(k, 2).Value = pID Then
+            ' Determine Icon based on Status (Col E)
+            Select Case LCase(ws.Cells(k, 5).Value)
+                Case "completed": icon = "✅"
+                Case "in progress": icon = "⚠️"
+                Case Else: icon = "⚪"
+            End Select
+            s = s & icon & " " & ws.Cells(k, 3).Value & " (" & Format(ws.Cells(k, 4).Value, "dd-mmm") & ")" & vbNewLine
+        End If
+    Next k
+    GetMilestones = s
+End Function
+
+Function GetResources(wsAlloc As Worksheet, wsRes As Worksheet, pID As String) As String
+    Dim lastRow As Long, k As Long
+    Dim s As String
+    Dim rID As String, rName As String
+    Dim alloc As Double, totalFTE As Double
+    
+    lastRow = wsAlloc.Cells(wsAlloc.Rows.Count, "B").End(xlUp).Row ' Col B is Proj ID
+    
+    For k = 2 To lastRow
+        If wsAlloc.Cells(k, 2).Value = pID Then
+            rID = wsAlloc.Cells(k, 3).Value
+            alloc = wsAlloc.Cells(k, 4).Value
+            totalFTE = totalFTE + alloc
+            
+            ' Lookup Name in Res sheet
+            On Error Resume Next
+            rName = Application.WorksheetFunction.VLookup(rID, wsRes.Range("A:B"), 2, False)
+            On Error GoTo 0
+            
+            s = s & "• " & rName & ": " & Format(alloc, "0%") & vbNewLine
+        End If
+    Next k
+    
+    s = s & vbNewLine & "TOTAL CAP: " & totalFTE & " FTE"
+    GetResources = s
+End Function
+
+Function GetVLookupValue(ws As Worksheet, lookupVal As String, colIndex As Integer) As String
+    On Error Resume Next
+    GetVLookupValue = Application.WorksheetFunction.VLookup(lookupVal, ws.Range("A:Z"), colIndex, False)
+    On Error GoTo 0
+End Function
+
+Sub FormatReport(ws As Worksheet, lastRow As Long)
+    Dim rng As Range
+    Set rng = ws.Range("A2:F" & lastRow)
+    
+    With rng
+        .VerticalAlignment = xlTop
+        .WrapText = True
+        .Borders.LineStyle = xlContinuous
+        .Borders.Color = RGB(200, 200, 200)
+    End With
+    
+    ' Column Widths
+    ws.Columns("A").ColumnWidth = 25
+    ws.Columns("B").ColumnWidth = 15
+    ws.Columns("C").ColumnWidth = 12
+    ws.Columns("D").ColumnWidth = 35
+    ws.Columns("E").ColumnWidth = 25
+    ws.Columns("F").ColumnWidth = 50
+    
+    ' RAG Formatting (Loop to color cells)
+    Dim cell As Range
+    For Each cell In ws.Range("C2:C" & lastRow)
+        cell.Font.Bold = True
+        cell.HorizontalAlignment = xlCenter
+        Select Case UCase(cell.Value)
+            Case "RED": cell.Interior.Color = RGB(255, 199, 206): cell.Font.Color = RGB(156, 0, 6)
+            Case "AMBER": cell.Interior.Color = RGB(255, 235, 156): cell.Font.Color = RGB(156, 87, 0)
+            Case "GREEN": cell.Interior.Color = RGB(198, 239, 206): cell.Font.Color = RGB(0, 97, 0)
+        End Select
+    Next cell
+End Sub

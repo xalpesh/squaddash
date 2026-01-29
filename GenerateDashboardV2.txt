@@ -1,0 +1,326 @@
+Option Explicit
+
+Sub GenerateFullReport_v2()
+    ' =========================================================================
+    ' MASTER CONTROLLER
+    ' Runs both the Dashboard and Heatmap generation sequentially
+    ' =========================================================================
+    Application.ScreenUpdating = False
+    Application.Calculation = xlCalculationManual
+    
+    GenerateDashboard_v2
+    GenerateHeatmap
+    
+    Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
+    
+    MsgBox "✅ Portfolio Dashboard & Resource Heatmap Refreshed!", vbInformation
+End Sub
+
+Sub GenerateDashboard_v2()
+    ' =========================================================================
+    ' 1. DASHBOARD GENERATOR
+    ' Aggregates DB tabs into a sorted, rich-text Executive View
+    ' =========================================================================
+    Dim wsRep As Worksheet, wsProj As Worksheet, wsUpd As Worksheet
+    Dim wsMile As Worksheet, wsAlloc As Worksheet, wsRes As Worksheet, wsSLA As Worksheet
+    Dim lastRow As Long, i As Long, outRow As Long
+    Dim pID As String, pName As String, port As String, team As String, lead As String, pm As String
+    Dim rag As String, goal As String, narr As String, task As String, risk As String
+    Dim sla As String, mileStr As String, resStr As String, totalFTE As Double
+    
+    ' --- SETUP SHEETS ---
+    Set wsProj = ThisWorkbook.Sheets("DB_Projects")
+    Set wsUpd = ThisWorkbook.Sheets("DB_Updates")
+    Set wsMile = ThisWorkbook.Sheets("DB_Milestones")
+    Set wsAlloc = ThisWorkbook.Sheets("DB_Allocations")
+    Set wsRes = ThisWorkbook.Sheets("DB_Resources")
+    Set wsSLA = ThisWorkbook.Sheets("DB_SLA")
+    
+    Set wsRep = GetOrAddSheet(">> DASHBOARD <<")
+    wsRep.Cells.Clear
+    
+    ' --- HEADERS ---
+    Dim headers As Variant
+    headers = Array("PROJECT NAME", "PORTFOLIO", "TEAM", "LEAD / PM", "STATUS", _
+                    "MILESTONE ROADMAP", "RESOURCE PLAN", "TOTAL FTE", "WEEKLY UPDATE (Narrative)", "SLA")
+    
+    With wsRep.Range("A1:J1")
+        .Value = headers
+        .Font.Bold = True
+        .Font.Color = RGB(255, 255, 255)
+        .Interior.Color = RGB(15, 44, 76) ' Corporate Navy
+        .HorizontalAlignment = xlCenter
+        .VerticalAlignment = xlCenter
+        .RowHeight = 30
+    End With
+    
+    ' --- DATA LOOP ---
+    lastRow = wsProj.Cells(wsProj.Rows.Count, "A").End(xlUp).Row
+    outRow = 2
+    
+    For i = 2 To lastRow
+        pID = wsProj.Cells(i, 1).Value
+        pName = wsProj.Cells(i, 2).Value
+        port = wsProj.Cells(i, 3).Value
+        team = wsProj.Cells(i, 4).Value
+        lead = wsProj.Cells(i, 5).Value
+        pm = wsProj.Cells(i, 6).Value
+        
+        ' LOOKUPS (Error handling inline)
+        On Error Resume Next
+        ' DB_Updates: A=ID, B=Wk, C=RAG, D=Goal, E=Narr, F=Tasks, G=Risks
+        rag = Application.VLookup(pID, wsUpd.Range("A:G"), 3, False)
+        goal = Application.VLookup(pID, wsUpd.Range("A:G"), 4, False)
+        narr = Application.VLookup(pID, wsUpd.Range("A:G"), 5, False)
+        task = Application.VLookup(pID, wsUpd.Range("A:G"), 6, False)
+        risk = Application.VLookup(pID, wsUpd.Range("A:G"), 7, False)
+        On Error GoTo 0
+        
+        ' AGGREGATIONS
+        mileStr = GetMilestones(pID, wsMile)
+        resStr = GetResources(pID, wsAlloc, wsRes, totalFTE)
+        sla = GetSLA(pID, wsSLA)
+        
+        ' OUTPUT
+        With wsRep
+            .Cells(outRow, 1).Value = pName & vbNewLine & "(ID: " & pID & ")"
+            .Cells(outRow, 2).Value = port
+            .Cells(outRow, 3).Value = team
+            .Cells(outRow, 4).Value = "Lead: " & lead & vbNewLine & "PM: " & pm
+            .Cells(outRow, 5).Value = UCase(rag)
+            .Cells(outRow, 6).Value = mileStr
+            .Cells(outRow, 7).Value = resStr
+            .Cells(outRow, 8).Value = totalFTE
+            .Cells(outRow, 9).Value = "GOAL: " & goal & vbNewLine & vbNewLine & _
+                                      "UPDATE: " & narr & vbNewLine & vbNewLine & _
+                                      "TASKS:" & vbNewLine & task & vbNewLine & vbNewLine & _
+                                      "RISK: " & risk
+            .Cells(outRow, 10).Value = sla
+        End With
+        
+        outRow = outRow + 1
+    Next i
+    
+    ' --- SORTING (By Portfolio -> Team) ---
+    Dim sortRange As Range
+    Set sortRange = wsRep.Range("A2:J" & outRow - 1)
+    
+    With wsRep.Sort
+        .SortFields.Clear
+        .SortFields.Add Key:=wsRep.Range("B2"), Order:=xlAscending ' Portfolio
+        .SortFields.Add Key:=wsRep.Range("C2"), Order:=xlAscending ' Team
+        .SetRange wsRep.Range("A1:J" & outRow - 1)
+        .Header = xlYes
+        .Apply
+    End With
+    
+    ' --- FORMATTING ---
+    Call FormatDashboard(wsRep, outRow - 1)
+End Sub
+
+Sub GenerateHeatmap()
+    ' =========================================================================
+    ' 2. HEATMAP GENERATOR
+    ' Calculates monthly allocation load based on Start/End dates
+    ' =========================================================================
+    Dim wsHeat As Worksheet, wsRes As Worksheet, wsAlloc As Worksheet
+    Dim lastRowRes As Long, lastRowAlloc As Long, r As Long, k As Long
+    Dim resID As String, resName As String, skill As String, mgr As String
+    Dim monthStart As Date, monthEnd As Date, todayDate As Date
+    Dim allocStart As Date, allocEnd As Date, allocPct As Double
+    Dim m As Integer, currentLoad As Double
+    Dim outRow As Long
+    
+    Set wsRes = ThisWorkbook.Sheets("DB_Resources")
+    Set wsAlloc = ThisWorkbook.Sheets("DB_Allocations")
+    Set wsHeat = GetOrAddSheet(">> RES_HEATMAP <<")
+    wsHeat.Cells.Clear
+    
+    ' --- HEADERS ---
+    wsHeat.Cells(1, 1).Value = "RESOURCE NAME"
+    wsHeat.Cells(1, 2).Value = "PRIMARY SKILL"
+    wsHeat.Cells(1, 3).Value = "MANAGER"
+    
+    todayDate = DateSerial(Year(Date), Month(Date), 1) ' First of current month
+    
+    ' Write Next 12 Months Columns
+    For m = 0 To 11
+        wsHeat.Cells(1, 4 + m).Value = DateAdd("m", m, todayDate)
+        wsHeat.Cells(1, 4 + m).NumberFormat = "mmm-yy"
+    Next m
+    
+    ' Format Headers
+    With wsHeat.Range("A1").Resize(1, 15)
+        .Font.Bold = True
+        .Interior.Color = RGB(15, 44, 76)
+        .Font.Color = vbWhite
+        .HorizontalAlignment = xlCenter
+    End With
+    
+    ' --- LOOP RESOURCES ---
+    lastRowRes = wsRes.Cells(wsRes.Rows.Count, "A").End(xlUp).Row
+    lastRowAlloc = wsAlloc.Cells(wsAlloc.Rows.Count, "A").End(xlUp).Row
+    outRow = 2
+    
+    For r = 2 To lastRowRes
+        resID = wsRes.Cells(r, 1).Value
+        resName = wsRes.Cells(r, 2).Value
+        skill = wsRes.Cells(r, 3).Value
+        mgr = wsRes.Cells(r, 5).Value ' Assuming Mgr in Col E
+        
+        wsHeat.Cells(outRow, 1).Value = resName
+        wsHeat.Cells(outRow, 2).Value = skill
+        wsHeat.Cells(outRow, 3).Value = mgr
+        
+        ' --- LOOP MONTHS ---
+        For m = 0 To 11
+            monthStart = DateAdd("m", m, todayDate)
+            monthEnd = DateSerial(Year(monthStart), Month(monthStart) + 1, 0)
+            currentLoad = 0
+            
+            ' Sum allocations for this resource in this month
+            For k = 2 To lastRowAlloc
+                If wsAlloc.Cells(k, 2).Value = resID Then ' Col B is ResID
+                    allocPct = wsAlloc.Cells(k, 4).Value  ' Col D is %
+                    allocStart = wsAlloc.Cells(k, 5).Value ' Col E is Start
+                    allocEnd = wsAlloc.Cells(k, 6).Value   ' Col F is End
+                    
+                    ' Check Overlap: (StartA <= EndB) and (EndA >= StartB)
+                    If allocStart <= monthEnd And allocEnd >= monthStart Then
+                        currentLoad = currentLoad + allocPct
+                    End If
+                End If
+            Next k
+            
+            wsHeat.Cells(outRow, 4 + m).Value = currentLoad
+        Next m
+        outRow = outRow + 1
+    Next r
+    
+    ' --- CONDITIONAL FORMATTING ---
+    Dim dataRng As Range
+    Set dataRng = wsHeat.Range(wsHeat.Cells(2, 4), wsHeat.Cells(outRow - 1, 15))
+    dataRng.NumberFormat = "0%"
+    
+    ' Red if > 100%
+    With dataRng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlGreater, Formula1:="=1")
+        .Interior.Color = RGB(255, 199, 206)
+        .Font.Color = RGB(156, 0, 6)
+    End With
+    ' Green if < 80%
+    With dataRng.FormatConditions.Add(Type:=xlCellValue, Operator:=xlLess, Formula1:="=0.8")
+        .Interior.Color = RGB(198, 239, 206)
+        .Font.Color = RGB(0, 97, 0)
+    End With
+    
+    wsHeat.Columns("A:O").AutoFit
+End Sub
+
+
+' =========================================================================
+' HELPER FUNCTIONS
+' =========================================================================
+
+Function GetMilestones(pID As String, ws As Worksheet) As String
+    Dim i As Long, last As Long, s As String, icon As String
+    last = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    
+    For i = 2 To last
+        If ws.Cells(i, 1).Value = pID Then ' DB_Milestones: A=ProjID, B=Name, C=Date, D=Status
+            Select Case LCase(ws.Cells(i, 4).Value)
+                Case "completed", "done": icon = "✅"
+                Case "in progress": icon = "⚠️"
+                Case Else: icon = "⚪"
+            End Select
+            s = s & icon & " " & ws.Cells(i, 2).Value & " (" & Format(ws.Cells(i, 3).Value, "dd-mmm") & ")" & vbNewLine
+        End If
+    Next i
+    GetMilestones = s
+End Function
+
+Function GetResources(pID As String, wsAlloc As Worksheet, wsRes As Worksheet, ByRef totFTE As Double) As String
+    Dim i As Long, last As Long, s As String
+    Dim rID As String, rName As String, rSkill As String
+    Dim pct As Double, sDate As Date, eDate As Date
+    
+    last = wsAlloc.Cells(wsAlloc.Rows.Count, "A").End(xlUp).Row
+    totFTE = 0
+    
+    For i = 2 To last
+        If wsAlloc.Cells(i, 1).Value = pID Then
+            rID = wsAlloc.Cells(i, 2).Value
+            pct = wsAlloc.Cells(i, 4).Value
+            sDate = wsAlloc.Cells(i, 5).Value
+            eDate = wsAlloc.Cells(i, 6).Value
+            
+            ' Lookup Name & Skill
+            On Error Resume Next
+            rName = Application.VLookup(rID, wsRes.Range("A:E"), 2, False)
+            rSkill = Application.VLookup(rID, wsRes.Range("A:E"), 3, False)
+            On Error GoTo 0
+            
+            totFTE = totFTE + pct
+            s = s & "• " & rName & " (" & rSkill & "): " & Format(pct, "0%") & " [" & Format(sDate, "mmm") & "-" & Format(eDate, "mmm") & "]" & vbNewLine
+        End If
+    Next i
+    GetResources = s
+End Function
+
+Function GetSLA(pID As String, ws As Worksheet) As String
+    Dim i As Long, last As Long
+    last = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    GetSLA = "Met" ' Default
+    For i = 2 To last
+        If ws.Cells(i, 1).Value = pID Then
+            If LCase(ws.Cells(i, 3).Value) = "breached" Then
+                GetSLA = "Breached"
+                Exit Function
+            End If
+        End If
+    Next i
+End Function
+
+Function GetOrAddSheet(sName As String) As Worksheet
+    On Error Resume Next
+    Set GetOrAddSheet = ThisWorkbook.Sheets(sName)
+    If GetOrAddSheet Is Nothing Then
+        Set GetOrAddSheet = ThisWorkbook.Sheets.Add(Before:=ThisWorkbook.Sheets(1))
+        GetOrAddSheet.Name = sName
+    End If
+    On Error GoTo 0
+End Function
+
+Sub FormatDashboard(ws As Worksheet, lastRow As Long)
+    ' Visual Polish for Dashboard
+    With ws.Range("A2:J" & lastRow)
+        .VerticalAlignment = xlTop
+        .WrapText = True
+        .Borders.LineStyle = xlContinuous
+        .Borders.Color = RGB(200, 200, 200)
+    End With
+    
+    ' Column Widths
+    ws.Columns("A").ColumnWidth = 25
+    ws.Columns("B").ColumnWidth = 15
+    ws.Columns("C").ColumnWidth = 15
+    ws.Columns("D").ColumnWidth = 18
+    ws.Columns("E").ColumnWidth = 10
+    ws.Columns("F").ColumnWidth = 30
+    ws.Columns("G").ColumnWidth = 35
+    ws.Columns("H").ColumnWidth = 8
+    ws.Columns("I").ColumnWidth = 45
+    ws.Columns("J").ColumnWidth = 10
+    
+    ' RAG Coloring
+    Dim c As Range
+    For Each c In ws.Range("E2:E" & lastRow)
+        c.Font.Bold = True
+        c.HorizontalAlignment = xlCenter
+        Select Case UCase(c.Value)
+            Case "RED": c.Interior.Color = RGB(255, 199, 206): c.Font.Color = RGB(156, 0, 6)
+            Case "AMBER": c.Interior.Color = RGB(255, 235, 156): c.Font.Color = RGB(156, 87, 0)
+            Case "GREEN": c.Interior.Color = RGB(198, 239, 206): c.Font.Color = RGB(0, 97, 0)
+        End Select
+    Next c
+End Sub
