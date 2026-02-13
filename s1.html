@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadOps Governance - Pillar 1</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;   /* Deep Navy */
+            --mck-blue: #0070C0;   /* Bright Accent Blue */
+            --mck-grey: #F2F2F2;   /* Background Grey */
+            --mck-text: #404040;   /* Dark Text */
+            --white: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #333; /* Dark background to make slide pop */
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* THE SLIDE CONTAINER (16:9 Aspect Ratio) */
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background-color: var(--white);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-rows: 140px 1fr 60px; /* Header, Content, Footer */
+            overflow: hidden;
+        }
+
+        /* --- 1. HEADER SECTION --- */
+        .header {
+            padding: 40px 50px 0 50px;
+        }
+        .header h1 {
+            color: var(--mck-navy);
+            font-size: 36px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .header-line {
+            height: 4px;
+            background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%);
+            width: 100%;
+            margin: 15px 0;
+        }
+        .header h2 {
+            color: var(--mck-blue);
+            font-size: 20px;
+            margin: 0;
+            font-weight: 400;
+        }
+
+        /* --- 2. MAIN CONTENT GRID --- */
+        .content {
+            display: grid;
+            grid-template-columns: 30% 70%; /* Split 30/70 */
+            padding: 30px 50px;
+            gap: 40px;
+        }
+
+        /* LEFT COLUMN: THE METRIC CARD */
+        .metric-card {
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+        }
+        .card-header {
+            background-color: var(--mck-navy);
+            color: var(--white);
+            padding: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .card-body {
+            background-color: #EBF1F5; /* Very light blue-grey */
+            flex-grow: 1;
+            padding: 25px;
+        }
+        
+        .metric-group { margin-bottom: 30px; }
+        .metric-label {
+            color: var(--mck-navy);
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+        .metric-value {
+            color: var(--mck-text);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        .metric-value ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .highlight { color: var(--mck-blue); font-weight: bold; }
+
+        /* RIGHT COLUMN: THE PHASE MAP VISUAL */
+        .visual-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .chart-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--mck-navy);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .phase-map {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        /* CHEVRON SHAPE CSS */
+        .phase-box {
+            position: relative;
+            background: linear-gradient(135deg, var(--mck-blue) 0%, #005A9E 100%);
+            color: white;
+            width: 28%; /* 3 boxes fit in row */
+            height: 200px;
+            padding: 20px;
+            clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%, 15% 50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        /* First box is a rectangle on left */
+        .phase-box:first-child {
+            clip-path: polygon(0% 0%, 85% 0%, 100% 50%, 85% 100%, 0% 100%);
+        }
+        
+        .phase-box:hover {
+            transform: translateY(-5px);
+            filter: brightness(1.1);
+        }
+
+        .phase-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        .phase-data {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        /* Connecting Arrows */
+        .arrow-connector {
+            font-size: 30px;
+            color: var(--mck-navy);
+            font-weight: bold;
+        }
+
+        /* --- 3. FOOTER (KICKER) --- */
+        .footer {
+            background-color: var(--mck-grey);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #ccc;
+        }
+        .kicker {
+            font-size: 18px;
+            font-style: italic;
+            color: var(--mck-navy);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Pillar 1: Demand Forecasting</h1>
+            <div class="header-line"></div>
+            <h2>Predictive 30/60/90-day forecasts drive skill readiness vs. reactive hiring</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="metric-card">
+                <div class="card-header">SOW METRICS & FOCUS AREA</div>
+                <div class="card-body">
+                    
+                    <div class="metric-group">
+                        <div class="metric-label">Key SOW Activity</div>
+                        <div class="metric-value">
+                            Review strategic roadmap & predict rolling forecast to prevent bench/gap issues.
+                        </div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-label">Measurable Metrics</div>
+                        <div class="metric-value">
+                            <ul>
+                                <li><span class="highlight">Forecast Accuracy:</span> +/- 10%</li>
+                                <li><span class="highlight">Rolling Window:</span> 30 / 60 / 90 Days</li>
+                                <li><span class="highlight">Trend Data:</span> Ticket Volume & Backlog</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-label">Primary Owner</div>
+                        <div class="metric-value">Supplier Portfolio Lead</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="visual-container">
+                <div class="chart-title">DATA COLLECTION PHASE MAP (ALIGNED TO PROJECT LIFECYCLE)</div>
+                
+                <div class="phase-map">
+                    
+                    <div class="phase-box">
+                        <div class="phase-title">Phase 1: Continuous</div>
+                        <div class="phase-data">Historical Trend<br>Analysis</div>
+                    </div>
+
+                    <div class="arrow-connector">&rarr;</div>
+
+                    <div class="phase-box">
+                        <div class="phase-title">Phase 2: Planning</div>
+                        <div class="phase-data">Strategic Roadmap<br>Review</div>
+                    </div>
+
+                    <div class="arrow-connector">&rarr;</div>
+
+                    <div class="phase-box">
+                        <div class="phase-title">Phase 3: Initiation</div>
+                        <div class="phase-data">30/60/90 Day<br>Rolling Forecast</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"Accurate forecasting reduces 'panic hiring' and ensures the right skills are available on Day 1."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

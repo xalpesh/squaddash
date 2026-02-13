@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadOps - Goal-Based Forecasting</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-light-blue: #E1F0FA;
+            --mck-grey: #F2F2F2;
+            --mck-text: #404040;
+            --white: #FFFFFF;
+            --accent-orange: #ED7D31; /* For the "Gap" alert */
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px;
+            height: 720px;
+            background-color: var(--white);
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid;
+            grid-template-rows: 140px 1fr 60px;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        .header { padding: 40px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 34px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .header-line { height: 4px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 15px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 20px; margin: 0; font-weight: 400; }
+
+        /* --- CONTENT GRID --- */
+        .content {
+            display: grid;
+            grid-template-columns: 28% 68%; /* Adjusted for visual balance */
+            padding: 30px 50px;
+            gap: 40px;
+        }
+
+        /* LEFT: METRIC CARD */
+        .metric-card { display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card-header { background-color: var(--mck-navy); color: var(--white); padding: 18px; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
+        .card-body { background-color: #EBF1F5; flex-grow: 1; padding: 25px; }
+        
+        .metric-group { margin-bottom: 25px; }
+        .metric-label { color: var(--mck-navy); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+        .metric-value { color: var(--mck-text); font-size: 14px; line-height: 1.5; }
+        .metric-value ul { margin: 0; padding-left: 18px; }
+        .highlight { color: var(--mck-blue); font-weight: bold; }
+
+        /* RIGHT: PROCESS VISUAL */
+        .visual-container { display: flex; flex-direction: column; position: relative; }
+        .chart-title { font-size: 14px; font-weight: bold; color: var(--mck-navy); text-align: center; margin-bottom: 10px; text-transform: uppercase; }
+
+        /* THE FLOWCHART LAYOUT */
+        .flow-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        /* 1. CUSTOMER INPUT (ASANA) */
+        .input-box {
+            width: 220px;
+            background: var(--white);
+            border: 2px solid var(--mck-navy);
+            padding: 15px;
+            text-align: center;
+            border-radius: 4px;
+            position: relative;
+            z-index: 2;
+        }
+        .asana-logo {
+            background-color: #F8D9DE; color: #E84562; /* Asana-ish colors */
+            font-weight: bold; padding: 4px 10px; border-radius: 10px; font-size: 12px; margin-bottom: 10px; display: inline-block;
+        }
+        
+        /* 2. THE PLANNING GATE */
+        .gate-box {
+            width: 140px;
+            height: 140px;
+            background: var(--mck-navy);
+            color: white;
+            clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); /* Diamond Shape */
+            display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+            font-size: 13px; font-weight: bold;
+            z-index: 2;
+        }
+
+        /* 3. SUPPLIER SOLUTION (THE 3 LEVERS) */
+        .solution-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            position: relative;
+        }
+        .lever-box {
+            width: 260px;
+            padding: 12px;
+            background: linear-gradient(90deg, var(--mck-blue) 0%, #005A9E 100%);
+            color: white;
+            border-radius: 4px;
+            font-size: 13px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+        .lever-icon { font-size: 18px; margin-right: 10px; }
+        .lever-tag { font-size: 10px; background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 4px; }
+
+        /* ARROWS */
+        .arrow-line { height: 2px; background: #ccc; flex-grow: 1; margin: 0 10px; position: relative; }
+        .arrow-line::after { content: '▶'; position: absolute; right: -5px; top: -7px; color: #ccc; font-size: 14px; }
+
+        /* BRACKET FOR SHARED POOL */
+        .shared-pool-bracket {
+            position: absolute;
+            right: -20px;
+            top: 60px;
+            height: 120px;
+            width: 20px;
+            border-right: 2px dashed var(--mck-navy);
+            border-top: 2px dashed var(--mck-navy);
+            border-bottom: 2px dashed var(--mck-navy);
+        }
+        .shared-label {
+            position: absolute; right: -160px; top: 110px;
+            font-size: 12px; font-weight: bold; color: var(--mck-navy); width: 140px; text-align: left;
+        }
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 16px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Pillar 1: Demand Forecasting & Quarterly Planning</h1>
+            <div class="header-line"></div>
+            <h2>Proactive resource orchestration ensures Asana goals are accepted only when fully staffed</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="metric-card">
+                <div class="card-header">QUARTERLY PLANNING PROCESS</div>
+                <div class="card-body">
+                    
+                    <div class="metric-group">
+                        <div class="metric-label">Trigger Event</div>
+                        <div class="metric-value">
+                            Customer "Next Quarter Planning" meeting to review & accept Asana Goals.
+                        </div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-label">Supplier Value Add</div>
+                        <div class="metric-value">
+                            <ul>
+                                <li>Pre-meeting <span class="highlight">Gap Analysis</span></li>
+                                <li>Checking <span class="highlight">Support Group</span> availability</li>
+                                <li>Identifying cross-skilling candidates</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="metric-group">
+                        <div class="metric-label">Key Success Metric</div>
+                        <div class="metric-value">
+                            <span class="highlight">100% Goal Acceptance</span><br>
+                            (Zero goals rejected due to lack of resources)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="visual-container">
+                <div class="chart-title">RESOURCE FULFILLMENT DECISION FLOW</div>
+                
+                <div class="flow-wrapper">
+                    
+                    <div class="input-box">
+                        <div class="asana-logo">ASANA GOALS</div>
+                        <div style="font-weight:bold; font-size:14px; color:#333;">Quarterly Goal Definitions</div>
+                        <div style="font-size:11px; color:#666; margin-top:5px;">(Draft Status)</div>
+                    </div>
+
+                    <div class="arrow-line"></div>
+
+                    <div class="gate-box">
+                        <div>PLANNING<br>MEETING</div>
+                        <div style="font-size:10px; font-weight:normal; margin-top:5px;">Is Resource Available?</div>
+                    </div>
+
+                    <div class="arrow-line"></div>
+
+                    <div class="solution-group">
+                        
+                        <div class="lever-box">
+                            <div style="display:flex; align-items:center;">
+                                <span class="lever-icon">⚡</span> 
+                                <div><b>Lever 1: Support Share</b><br><span style="font-size:10px; opacity:0.9;">Borrow from Support Group</span></div>
+                            </div>
+                        </div>
+
+                        <div class="lever-box">
+                            <div style="display:flex; align-items:center;">
+                                <span class="lever-icon">🔄</span> 
+                                <div><b>Lever 2: Cross-Skill</b><br><span style="font-size:10px; opacity:0.9;">Train existing Squad Member</span></div>
+                            </div>
+                        </div>
+
+                        <div class="lever-box" style="background: #595959;">
+                            <div style="display:flex; align-items:center;">
+                                <span class="lever-icon">➕</span> 
+                                <div><b>Lever 3: Onboard New</b><br><span style="font-size:10px; opacity:0.9;">Trigger Hiring (Lead Time)</span></div>
+                            </div>
+                        </div>
+
+                        <div class="shared-pool-bracket"></div>
+                        <div class="shared-label">
+                            <span style="color:#0070C0;">INTERNAL FULFILLMENT</span><br>
+                            Optimized utilization across Support & Squads
+                        </div>
+
+                    </div>
+                </div>
+                
+                <div style="text-align:center; margin-top:30px; background:#E1F0FA; padding:10px; border-radius:4px; font-size:13px; color:#0F355C; font-weight:bold; border:1px solid #0070C0;">
+                    OUTCOME: Goals are "Accepted" in Asana only after a Fulfilment Lever is confirmed.
+                 </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"We don't just track demand; we actively solve for it by leveraging the synergy between Support and Squads."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

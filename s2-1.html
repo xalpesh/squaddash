@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pillar 2: Work Intake & Prioritization</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-light-blue: #E1F0FA;
+            --mck-grey: #F2F2F2;
+            --white: #FFFFFF;
+            --success: #6CAE75;
+            --warning: #ED7D31;
+            --danger: #E84562;
+        }
+
+        body {
+            margin: 0; padding: 20px; background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: var(--white);
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid; grid-template-rows: 100px 1fr 50px; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header { padding: 30px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 28px; margin: 0; text-transform: uppercase; }
+        .header-line { height: 3px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 10px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 16px; margin: 0; font-weight: 400; }
+
+        /* CONTENT GRID */
+        .content {
+            display: grid;
+            grid-template-columns: 25% 72%;
+            padding: 10px 50px;
+            gap: 30px;
+        }
+
+        /* --- LEFT COLUMN: METRIC CARD --- */
+        .metric-card { display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-header { background-color: var(--mck-navy); color: var(--white); padding: 12px; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
+        .card-body { background-color: #EBF1F5; flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .sow-label { color: var(--mck-navy); font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #ccc; margin-bottom: 5px; padding-bottom: 2px; }
+        .sow-text { font-size: 13px; color: #444; line-height: 1.4; }
+        
+        .metrics-list { list-style: none; padding: 0; margin: 0; }
+        .metrics-list li { margin-bottom: 10px; font-size: 12px; color: #333; display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 2px;}
+        .highlight { color: var(--mck-blue); font-weight: bold; }
+
+        /* --- RIGHT COLUMN: VISUALS --- */
+        .right-pane { display: flex; flex-direction: column; gap: 20px; height: 100%; }
+
+        /* TOP RIGHT: THE INTAKE FUNNEL (PROCESS) */
+        .funnel-container { 
+            border: 1px dashed #ccc; padding: 15px; background: #fafafa; border-radius: 4px; position: relative; height: 140px; 
+            display: flex; align-items: center; justify-content: center;
+        }
+        .section-label { position: absolute; top: -10px; left: 15px; background: white; padding: 0 5px; color: var(--mck-navy); font-weight: bold; font-size: 11px; }
+
+        .gate-step { display: flex; flex-direction: column; align-items: center; width: 140px; position: relative; }
+        .gate-box { 
+            width: 100%; padding: 10px; text-align: center; color: white; font-weight: bold; font-size: 11px; border-radius: 4px; 
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1); z-index: 2;
+        }
+        .gate-sub { font-size: 9px; color: #666; margin-top: 5px; text-align: center; }
+        
+        .arrow-right { font-size: 24px; color: #ccc; margin: 0 15px; }
+
+        /* BOTTOM RIGHT: 2x2 PRIORITIZATION MATRIX */
+        .matrix-container { 
+            flex-grow: 1; background: white; border: 1px solid #ddd; padding: 20px; border-radius: 4px; position: relative; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        /* The Matrix Grid */
+        .matrix-grid { 
+            display: grid; 
+            grid-template-columns: 40px 1fr 1fr; 
+            grid-template-rows: 1fr 1fr 40px; 
+            gap: 5px; 
+            width: 90%; height: 90%;
+        }
+
+        /* Axis Labels */
+        .y-axis { grid-row: 1 / 3; grid-column: 1; writing-mode: vertical-rl; transform: rotate(180deg); text-align: center; font-weight: bold; color: var(--mck-navy); font-size: 12px; border-right: 2px solid #ccc; padding-left:10px;}
+        .x-axis { grid-row: 3; grid-column: 2 / 4; text-align: center; font-weight: bold; color: var(--mck-navy); font-size: 12px; border-top: 2px solid #ccc; padding-top: 10px; }
+
+        /* Quadrants */
+        .quadrant { border: 1px solid #eee; padding: 15px; position: relative; display: flex; flex-direction: column; }
+        .q-label { font-weight: bold; font-size: 12px; margin-bottom: 5px; text-transform: uppercase; }
+        .q-desc { font-size: 11px; color: #666; }
+        
+        /* Quadrant Colors/Positions */
+        .q1 { background-color: #E1F0FA; grid-row: 1; grid-column: 2; } /* High Value, Low Effort */
+        .q2 { background-color: #F2F2F2; grid-row: 1; grid-column: 3; } /* High Value, High Effort */
+        .q3 { background-color: #F9F9F9; grid-row: 2; grid-column: 2; } /* Low Value, Low Effort */
+        .q4 { background-color: #FDECEC; grid-row: 2; grid-column: 3; } /* Low Value, High Effort */
+
+        /* Sample Dots */
+        .dot-item { 
+            font-size: 10px; padding: 3px 6px; border-radius: 10px; color: white; display: inline-block; margin: 2px; cursor: pointer;
+        }
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 13px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Pillar 2: Work Intake & Prioritization</h1>
+            <div class="header-line"></div>
+            <h2>Standardized gating ensures zero "ambiguous requirements" enter the Squad Backlog</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="metric-card">
+                <div class="card-header">SOW METRICS & FOCUS AREA</div>
+                <div class="card-body">
+                    
+                    <div>
+                        <div class="sow-label">Key SOW Activity</div>
+                        <div class="sow-text">
+                            Validate scope, estimate effort, and prioritize backlog items based on business value.
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="sow-label">Measurable Metrics</div>
+                        <ul class="metrics-list">
+                            <li><span>Intake Cycle Time:</span> <span class="highlight">< 5 Days</span></li>
+                            <li><span>Ready Compliance:</span> <span class="highlight">100% (DoR Met)</span></li>
+                            <li><span>Backlog Health:</span> <span class="highlight">2 Sprints Ready</span></li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-top:auto;">
+                        <div class="sow-label">Primary Owner</div>
+                        <div class="sow-text" style="font-weight:bold; color:#0F355C;">Demand Manager / Scrum Master</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="right-pane">
+                
+                <div class="funnel-container">
+                    <div class="section-label">THE "DEFINITION OF READY" (DoR) GATE</div>
+                    
+                    <div class="gate-step">
+                        <div class="gate-box" style="background-color: #999;">RAW DEMAND</div>
+                        <div class="gate-sub">Source: Asana Goals<br>(Unfiltered)</div>
+                    </div>
+
+                    <div class="arrow-right">&rarr;</div>
+
+                    <div class="gate-step">
+                        <div class="gate-box" style="background-color: var(--warning);">TRIAGE & SCORING</div>
+                        <div class="gate-sub">Check: Technical Feasibility<br>& Business Value</div>
+                    </div>
+
+                    <div class="arrow-right">&rarr;</div>
+
+                    <div class="gate-step">
+                        <div class="gate-box" style="background-color: var(--mck-blue);">ESTIMATION</div>
+                        <div class="gate-sub">Output: Story Points<br>& Dependency Map</div>
+                    </div>
+
+                    <div class="arrow-right">&rarr;</div>
+
+                    <div class="gate-step">
+                        <div class="gate-box" style="background-color: var(--success);">SPRINT READY</div>
+                        <div class="gate-sub">Status: Approved<br>(DoR Checklist Met)</div>
+                    </div>
+
+                </div>
+
+                <div class="matrix-container">
+                    <div class="section-label">OUTPUT: PRIORITIZATION SCORING MATRIX</div>
+                    
+                    <div class="matrix-grid">
+                        <div class="y-axis">BUSINESS VALUE (ROI)</div>
+                        
+                        <div class="quadrant q1">
+                            <div class="q-label" style="color:var(--mck-blue);">QUICK WINS (P1)</div>
+                            <div class="q-desc">High Value / Low Effort</div>
+                            <div style="margin-top:10px;">
+                                <span class="dot-item" style="background:var(--mck-blue);">Asana Goal #42</span>
+                                <span class="dot-item" style="background:var(--mck-blue);">API Fix</span>
+                            </div>
+                        </div>
+                        
+                        <div class="quadrant q2">
+                            <div class="q-label" style="color:#666;">STRATEGIC (P2)</div>
+                            <div class="q-desc">High Value / High Effort</div>
+                            <div style="margin-top:10px;">
+                                <span class="dot-item" style="background:#888;">Cloud Migration</span>
+                                <span class="dot-item" style="background:#888;">New UX</span>
+                            </div>
+                        </div>
+
+                        <div class="quadrant q3">
+                            <div class="q-label" style="color:#999;">FILLERS (P3)</div>
+                            <div class="q-desc">Low Value / Low Effort</div>
+                            <div style="margin-top:10px;">
+                                <span class="dot-item" style="background:#ccc;">Minor UI Tweaks</span>
+                            </div>
+                        </div>
+
+                        <div class="quadrant q4">
+                            <div class="q-label" style="color:var(--danger);">AVOID / DEFER</div>
+                            <div class="q-desc">Low Value / High Effort</div>
+                            <div style="margin-top:10px;">
+                                <span class="dot-item" style="background:var(--danger);">Legacy Report</span>
+                            </div>
+                        </div>
+
+                        <div class="x-axis">COMPLEXITY / EFFORT</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"We do not start work that isn't ready. The 'DoR Gate' protects the Squad from churn and blocking issues."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadOps - Integrated Demand Forecasting</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-light-blue: #E1F0FA;
+            --mck-grey: #F2F2F2;
+            --white: #FFFFFF;
+            --success: #6CAE75; /* Green for 30 days */
+            --warning: #F4B183; /* Orange for 60 days */
+            --neutral: #BFBFBF; /* Grey for 90 days */
+        }
+
+        body {
+            margin: 0; padding: 20px; background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: var(--white);
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid; grid-template-rows: 110px 1fr 50px; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header { padding: 30px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 30px; margin: 0; text-transform: uppercase; }
+        .header-line { height: 3px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 10px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 18px; margin: 0; font-weight: 400; }
+
+        /* CONTENT GRID */
+        .content {
+            display: grid;
+            grid-template-columns: 28% 68%; /* Split */
+            padding: 20px 50px;
+            gap: 40px;
+        }
+
+        /* --- LEFT COLUMN: SOW CARD --- */
+        .metric-card { display: flex; flex-direction: column; height: 100%; border: 1px solid #ccc; }
+        .card-header { background-color: var(--mck-navy); color: var(--white); padding: 15px; font-size: 14px; font-weight: bold; }
+        .card-body { background-color: #EBF1F5; flex-grow: 1; padding: 20px; }
+        
+        .sow-section { margin-bottom: 25px; }
+        .sow-title { color: var(--mck-navy); font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #ccc; margin-bottom: 8px; padding-bottom: 3px; }
+        .sow-text { font-size: 13px; color: #444; line-height: 1.4; }
+        .metric-box { background: white; padding: 10px; border-left: 4px solid var(--mck-blue); margin-top: 10px; font-size: 12px; font-weight: bold; color: var(--mck-navy); }
+
+        /* --- RIGHT COLUMN: STACKED VISUALS --- */
+        .right-pane { display: flex; flex-direction: column; gap: 20px; height: 100%; }
+
+        /* TOP RIGHT: PROCESS FLOW (Small) */
+        .process-container { border: 1px dashed #ccc; padding: 15px; background: #fafafa; border-radius: 4px; position: relative; }
+        .section-label { position: absolute; top: -10px; left: 20px; background: white; padding: 0 5px; color: var(--mck-navy); font-weight: bold; font-size: 12px; }
+        
+        .flow-row { display: flex; align-items: center; justify-content: space-around; margin-top: 10px; }
+        .step-box { border: 1px solid #999; padding: 10px; background: white; text-align: center; width: 140px; font-size: 12px; border-radius: 4px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); }
+        .arrow { font-size: 20px; color: #999; }
+
+        /* BOTTOM RIGHT: 30/60/90 VISUAL */
+        .forecast-container { 
+            flex-grow: 1; background: white; border: 1px solid #ddd; padding: 20px; border-radius: 4px; position: relative; 
+            display: flex; flex-direction: column;
+        }
+        
+        .timeline-grid { display: flex; height: 100%; margin-top: 15px; border-left: 1px solid #ccc; border-bottom: 1px solid #ccc; }
+        
+        /* The 3 Columns */
+        .time-col { flex: 1; border-right: 1px dashed #eee; position: relative; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 10px; }
+        .col-header { position: absolute; top: -25px; width: 100%; text-align: center; font-weight: bold; color: var(--mck-navy); font-size: 14px; }
+        
+        /* Resource Blocks */
+        .res-block { margin-bottom: 5px; color: white; font-size: 11px; padding: 6px; text-align: center; border-radius: 2px; font-weight: bold; }
+        .b-30 { background-color: var(--success); }
+        .b-60 { background-color: var(--warning); color: #333; }
+        .b-90 { background-color: var(--neutral); color: #333; }
+
+        .legend { display: flex; gap: 20px; justify-content: flex-end; font-size: 11px; margin-top: 10px; }
+        .dot { width: 10px; height: 10px; display: inline-block; margin-right: 5px; }
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 14px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Pillar 1: Demand Forecasting & SOW Alignment</h1>
+            <div class="header-line"></div>
+            <h2>Operationalizing Core FTE Forecasting to meet variable business demand (SOW Exhibit C)</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="metric-card">
+                <div class="card-header">SOW COMMITMENTS & METRICS</div>
+                <div class="card-body">
+                    
+                    <div class="sow-section">
+                        <div class="sow-title">SOW REQUIREMENT (General Mgmt)</div>
+                        <div class="sow-text">
+                            "Operationalize Core FTE Forecasting... to meet variable business demand, onboard niche skills, and optimize cost."
+                        </div>
+                    </div>
+
+                    <div class="sow-section">
+                        <div class="sow-title">SOW REQUIREMENT (Squad Formation)</div>
+                        <div class="sow-text">
+                            "Recommend role ratios and structure (e.g., Sr:Dev:Jr) to ensure balanced delivery capacity."
+                        </div>
+                    </div>
+
+                    <div class="sow-section">
+                        <div class="sow-title">SUCCESS METRICS</div>
+                        <div class="metric-box">
+                            <div>• Forecast Accuracy: +/- 10%</div>
+                            <div style="margin-top:5px">• Goal Acceptance Rate: 100%</div>
+                            <div style="margin-top:5px">• Bench Cost Variance: < 5%</div>
+                        </div>
+                    </div>
+
+                    <div class="sow-section" style="margin-top:auto;">
+                        <div class="sow-title">OWNER</div>
+                        <div class="sow-text">Supplier Portfolio Lead</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="right-pane">
+                
+                <div class="process-container">
+                    <div class="section-label">THE INPUT PROCESS</div>
+                    <div class="flow-row">
+                        <div class="step-box" style="border-left: 4px solid #E84562;">
+                            <b>ASANA GOALS</b><br>
+                            <span style="font-size:10px; color:#666;">Customer Input (Quarterly)</span>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="step-box" style="border-left: 4px solid var(--mck-navy);">
+                            <b>GAP ANALYSIS</b><br>
+                            <span style="font-size:10px; color:#666;">Compare vs. Capacity</span>
+                        </div>
+                        <div class="arrow">&rarr;</div>
+                        <div class="step-box" style="border-left: 4px solid var(--mck-blue);">
+                            <b>FULFILLMENT</b><br>
+                            <span style="font-size:10px; color:#666;">Share / Cross-Skill / Hire</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="forecast-container">
+                    <div class="section-label">THE OUTPUT: 30 / 60 / 90 ROLLING FORECAST VIEW</div>
+                    
+                    <div class="timeline-grid">
+                        
+                        <div class="time-col">
+                            <div class="col-header">30 DAYS (Firm)</div>
+                            <div class="res-block b-30">Java Dev: John Doe</div>
+                            <div class="res-block b-30">QA Lead: Sarah Smith</div>
+                            <div class="res-block b-30">Scrum Master: Mike R.</div>
+                            <div class="res-block b-30">Data Eng: Jane Doe</div>
+                            <div style="text-align:center; font-size:10px; margin-top:5px; color:#666;">100% Named Resources</div>
+                        </div>
+
+                        <div class="time-col">
+                            <div class="col-header">60 DAYS (Soft Lock)</div>
+                            <div class="res-block b-30">Java Dev: John Doe</div>
+                            <div class="res-block b-30">QA Lead: Sarah Smith</div>
+                            <div class="res-block b-60">Role: Scrum Master</div>
+                            <div class="res-block b-60">Role: Data Eng</div>
+                            <div style="text-align:center; font-size:10px; margin-top:5px; color:#666;">Mix of Named & Roles</div>
+                        </div>
+
+                        <div class="time-col">
+                            <div class="col-header">90 DAYS (Outlook)</div>
+                            <div class="res-block b-30">Java Dev: John Doe</div>
+                            <div class="res-block b-90">Capacity Bucket: QA</div>
+                            <div class="res-block b-90">Capacity Bucket: SM</div>
+                            <div class="res-block b-90">Capacity Bucket: DE</div>
+                            <div style="text-align:center; font-size:10px; margin-top:5px; color:#666;">Capacity Blocks Only</div>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div><span class="dot" style="background:var(--success)"></span>Named (SOW Billable)</div>
+                        <div><span class="dot" style="background:var(--warning)"></span>Role Defined (Hiring Trigger)</div>
+                        <div><span class="dot" style="background:var(--neutral)"></span>Capacity Placeholder</div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"Moving from 'Role-based' to 'Name-based' locking creates a predictable financial baseline for the quarter."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>
