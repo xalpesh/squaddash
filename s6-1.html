@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pillar 6: Project Management</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-light-blue: #E1F0FA;
+            --mck-grey: #F2F2F2;
+            --white: #FFFFFF;
+            --success: #6CAE75;
+            --warning: #ED7D31;
+            --danger: #E84562;
+        }
+
+        body {
+            margin: 0; padding: 20px; background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: var(--white);
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid; grid-template-rows: 100px 1fr 50px; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header { padding: 30px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 28px; margin: 0; text-transform: uppercase; }
+        .header-line { height: 3px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 10px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 16px; margin: 0; font-weight: 400; }
+
+        /* CONTENT GRID */
+        .content {
+            display: grid;
+            grid-template-columns: 26% 71%;
+            padding: 10px 50px;
+            gap: 30px;
+        }
+
+        /* --- LEFT COLUMN: SOW METRIC CARD --- */
+        .metric-card { display: flex; flex-direction: column; height: 100%; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .card-header { background-color: var(--mck-navy); color: var(--white); padding: 12px; font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
+        .card-body { background-color: #EBF1F5; flex-grow: 1; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        
+        .sow-label { color: var(--mck-navy); font-size: 11px; font-weight: bold; text-transform: uppercase; border-bottom: 1px solid #ccc; margin-bottom: 5px; padding-bottom: 2px; }
+        .sow-text { font-size: 13px; color: #444; line-height: 1.4; }
+        .metrics-list { list-style: none; padding: 0; margin: 0; }
+        .metrics-list li { margin-bottom: 10px; font-size: 12px; color: #333; display: flex; justify-content: space-between; border-bottom: 1px dashed #ccc; padding-bottom: 2px;}
+        .highlight { color: var(--mck-blue); font-weight: bold; }
+
+        /* --- RIGHT COLUMN: VISUALS --- */
+        .right-pane { display: flex; flex-direction: column; gap: 15px; height: 100%; }
+
+        /* VISUAL 1: SDLC GOVERNANCE FRAMEWORK */
+        .framework-container { 
+            border: 1px dashed #ccc; padding: 15px; background: white; border-radius: 4px; position: relative; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; height: 200px;
+        }
+        .section-label { position: absolute; top: -10px; left: 15px; background: white; padding: 0 5px; color: var(--mck-navy); font-weight: bold; font-size: 11px; text-transform: uppercase; z-index: 10; }
+
+        /* Governance Umbrella overlay */
+        .umbrella {
+            width: 90%; background: var(--mck-navy); color: white; text-align: center; padding: 8px; font-size: 11px;
+            font-weight: bold; border-radius: 4px; position: relative; margin-bottom: 20px;
+        }
+        .umbrella::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid var(--mck-navy);
+        }
+
+        .sdlc-flow { display: flex; align-items: center; justify-content: space-between; width: 90%; position: relative; }
+        .sdlc-box { 
+            background: #fafafa; border: 2px solid var(--mck-blue); padding: 12px 5px; width: 130px; 
+            text-align: center; border-radius: 4px; box-shadow: 2px 2px 5px rgba(0,0,0,0.05); position: relative; z-index: 2;
+        }
+        .sdlc-title { font-size: 11px; font-weight: bold; color: var(--mck-navy); margin-bottom: 5px; text-transform: uppercase; }
+        .sdlc-desc { font-size: 9px; color: #666; line-height: 1.2; }
+        .arrow { font-size: 20px; color: var(--mck-blue); font-weight: bold; }
+
+        /* VISUAL 2: CONTINUOUS IMPROVEMENT LOOP & KPIs */
+        .kpi-container { 
+            flex-grow: 1; background: #fafafa; border: 1px solid #ddd; padding: 20px; border-radius: 4px; position: relative; 
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+        }
+
+        /* KPI Dials / Cards */
+        .kpi-row { display: flex; width: 100%; justify-content: space-around; margin-top: 15px; z-index: 2; }
+        .kpi-card { 
+            background: white; border: 1px solid #ccc; width: 30%; border-radius: 6px; padding: 15px; text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid var(--mck-navy);
+        }
+        .kpi-val { font-size: 24px; font-weight: bold; color: var(--mck-blue); margin: 5px 0; }
+        .kpi-name { font-size: 11px; font-weight: bold; color: #333; text-transform: uppercase; }
+        .kpi-target { font-size: 10px; color: #666; }
+
+        /* Feedback Loop Arrow */
+        .feedback-loop {
+            width: 80%; height: 40px; border: 2px dashed var(--warning); border-top: none; 
+            border-radius: 0 0 20px 20px; position: relative; margin-top: 10px;
+            display: flex; justify-content: center; align-items: flex-end; padding-bottom: 5px;
+        }
+        .feedback-loop::before {
+            content: '◀'; position: absolute; left: -8px; top: -10px; color: var(--warning); font-size: 16px;
+        }
+        .feedback-loop::after {
+            content: '▲'; position: absolute; right: -8px; top: -12px; color: var(--warning); font-size: 16px;
+        }
+        .loop-text { background: #fafafa; padding: 0 10px; font-size: 10px; font-weight: bold; color: var(--warning); transform: translateY(12px); text-transform: uppercase;}
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 13px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Pillar 6: Project Management & Governance</h1>
+            <div class="header-line"></div>
+            <h2>Driving consistent execution through PMI best practices and rigorous SDLC governance</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="metric-card">
+                <div class="card-header">SOW METRICS & FOCUS AREA</div>
+                <div class="card-body">
+                    
+                    <div>
+                        <div class="sow-label">Key SOW Activity</div>
+                        <div class="sow-text">
+                            "Own/maintain the enterprise SDLC framework... Monitor all projects to ensure delivery on-time, on-budget in alignment with Appendix B-1... Drive continual improvement of estimates."
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="sow-label">Measurable Metrics</div>
+                        <ul class="metrics-list">
+                            <li><span>Schedule Perf. Index (SPI):</span> <span class="highlight">≥ 0.95 (On-Time)</span></li>
+                            <li><span>Cost Perf. Index (CPI):</span> <span class="highlight">≥ 0.95 (On-Budget)</span></li>
+                            <li><span>Estimate Variance:</span> <span class="highlight">Target < 10% Error</span></li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-top:auto;">
+                        <div class="sow-label">Primary Owner</div>
+                        <div class="sow-text" style="font-weight:bold; color:#0F355C;">PMO / Delivery Manager</div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="right-pane">
+                
+                <div class="framework-container">
+                    <div class="section-label">ENTERPRISE SDLC GOVERNANCE FRAMEWORK</div>
+                    
+                    <div class="umbrella">PMI BEST PRACTICES & CPCHEM STANDARDS GOVERNANCE OVERLAY</div>
+
+                    <div class="sdlc-flow">
+                        <div class="sdlc-box">
+                            <div class="sdlc-title">Initiation</div>
+                            <div class="sdlc-desc">Charter & RACI Approval<br>(PM Lite Gate)</div>
+                        </div>
+
+                        <div class="arrow">&rarr;</div>
+
+                        <div class="sdlc-box">
+                            <div class="sdlc-title">Planning</div>
+                            <div class="sdlc-desc">Dependencies & Schedule<br>(Baselining)</div>
+                        </div>
+
+                        <div class="arrow">&rarr;</div>
+
+                        <div class="sdlc-box">
+                            <div class="sdlc-title">Execution</div>
+                            <div class="sdlc-desc">Sprint Delivery & Risk<br>Mitigation</div>
+                        </div>
+
+                        <div class="arrow">&rarr;</div>
+
+                        <div class="sdlc-box">
+                            <div class="sdlc-title">Closure</div>
+                            <div class="sdlc-desc">Retrospective & Benefit<br>Realization</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kpi-container">
+                    <div class="section-label">PERFORMANCE TRACKING & DOUBLE-LOOP LEARNING</div>
+                    
+                    <div class="kpi-row">
+                        <div class="kpi-card">
+                            <div class="kpi-name">Schedule Performance</div>
+                            <div class="kpi-val">1.02 SPI</div>
+                            <div class="kpi-target">Target: ≥ 0.95 (On-Time)</div>
+                        </div>
+
+                        <div class="kpi-card">
+                            <div class="kpi-name">Cost Performance</div>
+                            <div class="kpi-val">0.98 CPI</div>
+                            <div class="kpi-target">Target: ≥ 0.95 (On-Budget)</div>
+                        </div>
+
+                        <div class="kpi-card" style="border-top-color: var(--warning);">
+                            <div class="kpi-name">Estimation Accuracy</div>
+                            <div class="kpi-val">8.5% Var</div>
+                            <div class="kpi-target">Target: < 10% Variance</div>
+                        </div>
+                    </div>
+
+                    <div class="feedback-loop">
+                        <div class="loop-text">Continual Improvement Loop: Execution Data refines future Demand Estimates</div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"Governance is not just tracking status—it’s a closed-loop system where today's execution data improves tomorrow's estimates."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>
