@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadOps Governance Matrix</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-light-blue: #E1F0FA;
+            --mck-grey: #F2F2F2;
+            --white: #FFFFFF;
+            --border-color: #d1d1d1;
+        }
+
+        body {
+            margin: 0; padding: 20px; background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: var(--white);
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid; grid-template-rows: 100px 1fr 50px; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header { padding: 30px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 28px; margin: 0; text-transform: uppercase; }
+        .header-line { height: 3px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 10px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 16px; margin: 0; font-weight: 400; }
+
+        /* TABLE CONTAINER */
+        .content {
+            padding: 10px 50px;
+            display: flex; flex-direction: column;
+        }
+
+        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        
+        thead { background-color: var(--mck-navy); color: white; }
+        th { padding: 12px 10px; text-align: left; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; }
+        
+        td { padding: 10px; border-bottom: 1px solid #ddd; border-right: 1px solid #eee; color: #333; vertical-align: middle; }
+        
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        tr:hover { background-color: #E1F0FA; }
+
+        /* Column Specifics */
+        .col-pillar { width: 15%; font-weight: bold; color: var(--mck-navy); }
+        .col-metric { width: 20%; font-weight: bold; color: var(--mck-blue); }
+        .col-phase { width: 12%; }
+        .col-raci { width: 25%; font-size: 10px; }
+        .col-freq { width: 10%; text-align: center; }
+
+        /* RACI Tags */
+        .role-tag { display: inline-block; padding: 2px 5px; border-radius: 3px; margin-right: 4px; margin-bottom: 2px; }
+        .r-own { background: #e0f2f1; color: #00695c; border: 1px solid #00695c; }
+        .r-consult { background: #fff3e0; color: #ef6c00; border: 1px solid #ef6c00; }
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 13px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>Operational Governance Matrix</h1>
+            <div class="header-line"></div>
+            <h2>Summary of Key Metrics, Roles, and Cadence for the SquadOps Framework</h2>
+        </div>
+
+        <div class="content">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th class="col-pillar">Governance Pillar</th>
+                        <th>Objective</th>
+                        <th class="col-metric">Key Metric (SLA)</th>
+                        <th class="col-phase">Collection Phase</th>
+                        <th class="col-raci">RACI (Owner / Consulted)</th>
+                        <th class="col-freq">Frequency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+                    <tr>
+                        <td class="col-pillar">1. Demand Forecasting</td>
+                        <td>Predict rolling resource needs</td>
+                        <td class="col-metric">Forecast Accuracy (+/- 10%)</td>
+                        <td>Planning</td>
+                        <td>
+                            <span class="role-tag r-own">R: Portfolio Lead</span>
+                            <span class="role-tag r-consult">C: Customer</span>
+                        </td>
+                        <td class="col-freq">Monthly</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">2. Work Intake</td>
+                        <td>Validate & prioritize backlog</td>
+                        <td class="col-metric">Intake Cycle Time (< 5 Days)</td>
+                        <td>Analysis</td>
+                        <td>
+                            <span class="role-tag r-own">R: Demand Mgr</span>
+                            <span class="role-tag r-consult">C: Product Owner</span>
+                        </td>
+                        <td class="col-freq">Weekly</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">3. Squad Formation</td>
+                        <td>Right-sized staffing (Ratio)</td>
+                        <td class="col-metric">Time-to-Fill (< 5 Days)</td>
+                        <td>Initiation</td>
+                        <td>
+                            <span class="role-tag r-own">R: Resource Mgr</span>
+                            <span class="role-tag r-consult">C: Squad Lead</span>
+                        </td>
+                        <td class="col-freq">Ad-Hoc</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">4. Flex Mgmt</td>
+                        <td>Elastic scaling for peaks</td>
+                        <td class="col-metric">Flex vs Core Ratio (20:80)</td>
+                        <td>Execution</td>
+                        <td>
+                            <span class="role-tag r-own">R: Ops Lead</span>
+                            <span class="role-tag r-consult">C: Finance</span>
+                        </td>
+                        <td class="col-freq">Weekly</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">5. Capacity & Util.</td>
+                        <td>Monitor bandwidth efficiency</td>
+                        <td class="col-metric">Utilization % (Target 85%)</td>
+                        <td>Execution</td>
+                        <td>
+                            <span class="role-tag r-own">R: Delivery Lead</span>
+                            <span class="role-tag r-consult">C: PMO</span>
+                        </td>
+                        <td class="col-freq">Weekly</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">6. Project Gov.</td>
+                        <td>SDLC & PMI Compliance</td>
+                        <td class="col-metric">SPI / CPI (≥ 0.95)</td>
+                        <td>Monitoring</td>
+                        <td>
+                            <span class="role-tag r-own">R: PMO Lead</span>
+                            <span class="role-tag r-consult">C: Scrum Master</span>
+                        </td>
+                        <td class="col-freq">Bi-Weekly</td>
+                    </tr>
+
+                    <tr>
+                        <td class="col-pillar">7. Project Execution</td>
+                        <td>Deliver quality product</td>
+                        <td class="col-metric">Defect Leakage (< 2%)</td>
+                        <td>Closing</td>
+                        <td>
+                            <span class="role-tag r-own">R: Tech Lead</span>
+                            <span class="role-tag r-consult">C: QA Lead</span>
+                        </td>
+                        <td class="col-freq">Per Sprint</td>
+                    </tr>
+
+                </tbody>
+            </table>
+            
+            <div style="margin-top:15px; font-size:10px; color:#666; font-style:italic;">
+                * "R" = Responsible (Who does the work), "C" = Consulted (Who provides input). All metrics are reported in the Monthly Business Review (MBR).
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"Accountability is key. This matrix defines exactly who owns the number, ensuring no metric goes unmanaged."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>

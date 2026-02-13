@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SquadOps Governance Model - Executive Summary</title>
+    <style>
+        :root {
+            --mck-navy: #0F355C;
+            --mck-blue: #0070C0;
+            --mck-grey: #F2F2F2;
+            --white: #FFFFFF;
+            --accent-green: #6CAE75;
+        }
+
+        body {
+            margin: 0; padding: 20px; background-color: #333;
+            font-family: 'Arial', sans-serif;
+            display: flex; justify-content: center; align-items: center; height: 100vh;
+        }
+
+        .slide-container {
+            width: 1280px; height: 720px; background-color: var(--white);
+            position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            display: grid; grid-template-rows: 100px 1fr 50px; overflow: hidden;
+        }
+
+        /* HEADER */
+        .header { padding: 30px 50px 0 50px; }
+        .header h1 { color: var(--mck-navy); font-size: 28px; margin: 0; text-transform: uppercase; }
+        .header-line { height: 3px; background: linear-gradient(90deg, var(--mck-navy) 0%, var(--mck-blue) 100%); width: 100%; margin: 10px 0; }
+        .header h2 { color: var(--mck-blue); font-size: 16px; margin: 0; font-weight: 400; }
+
+        /* CONTENT GRID */
+        .content {
+            display: grid;
+            grid-template-columns: 70% 28%; /* Main Diagram vs. Benefits Sidebar */
+            padding: 20px 50px;
+            gap: 30px;
+        }
+
+        /* --- LEFT COLUMN: THE TEMPLE DIAGRAM --- */
+        .diagram-container { display: flex; flex-direction: column; height: 100%; justify-content: flex-end; position: relative; }
+        
+        /* The Roof (Outcome) */
+        .roof { 
+            background: var(--mck-navy); color: white; text-align: center; padding: 15px; 
+            clip-path: polygon(5% 0%, 95% 0%, 100% 100%, 0% 100%);
+            margin-bottom: 5px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 2;
+        }
+        .roof-text { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+        .roof-sub { font-size: 11px; font-weight: normal; margin-top: 5px; color: #ccc; }
+
+        /* The Pillars Container */
+        .pillars-row { display: flex; justify-content: space-between; height: 350px; width: 98%; margin: 0 auto; }
+        
+        /* Individual Pillar */
+        .pillar { 
+            width: 13%; background: linear-gradient(180deg, #f9f9f9 0%, #e1e1e1 100%); 
+            border: 1px solid #ccc; border-top: 4px solid var(--mck-blue); border-bottom: 4px solid var(--mck-navy);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 10px 5px; text-align: center; position: relative; transition: transform 0.2s;
+        }
+        .pillar:hover { transform: translateY(-5px); background: #E1F0FA; border-top-color: var(--mck-navy); }
+
+        .p-num { font-size: 24px; font-weight: bold; color: #ddd; position: absolute; top: 10px; }
+        .p-icon { font-size: 24px; color: var(--mck-navy); margin-bottom: 10px; z-index: 2; }
+        .p-title { font-size: 11px; font-weight: bold; color: var(--mck-navy); text-transform: uppercase; margin-bottom: 8px; z-index: 2; line-height: 1.2; }
+        .p-desc { font-size: 9px; color: #555; z-index: 2; line-height: 1.3; }
+
+        /* The Foundation */
+        .foundation { 
+            background: var(--mck-grey); border-top: 2px solid #999; text-align: center; padding: 15px; 
+            margin-top: 5px; width: 100%; font-size: 12px; font-weight: bold; color: #666; text-transform: uppercase;
+        }
+
+        /* --- RIGHT COLUMN: BENEFITS SIDEBAR --- */
+        .sidebar { 
+            background: #fafafa; border-left: 1px solid #ddd; padding-left: 30px; 
+            display: flex; flex-direction: column; justify-content: center; gap: 25px;
+        }
+        
+        .benefit-box { display: flex; flex-direction: column; gap: 5px; }
+        .b-title { font-size: 12px; font-weight: bold; color: var(--mck-blue); text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+        .b-title::before { content: '✔'; font-size: 14px; color: var(--accent-green); }
+        .b-text { font-size: 11px; color: #444; line-height: 1.4; padding-left: 20px; }
+
+        /* FOOTER */
+        .footer { background-color: var(--mck-grey); display: flex; align-items: center; justify-content: center; border-top: 1px solid #ccc; }
+        .kicker { font-size: 13px; font-style: italic; color: var(--mck-navy); }
+
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <div class="header">
+            <h1>SquadOps Governance Model</h1>
+            <div class="header-line"></div>
+            <h2>A unified operating framework to synchronize 140+ resources from Demand to Delivery</h2>
+        </div>
+
+        <div class="content">
+            
+            <div class="diagram-container">
+                
+                <div class="roof">
+                    <div class="roof-text">Predictive Delivery Outcome</div>
+                    <div class="roof-sub">On-Time • On-Budget • High Quality</div>
+                </div>
+
+                <div class="pillars-row">
+                    
+                    <div class="pillar">
+                        <span class="p-num">01</span>
+                        <div class="p-icon">📡</div>
+                        <div class="p-title">Demand Forecast</div>
+                        <div class="p-desc">Proactive roadmap planning & gap analysis</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">02</span>
+                        <div class="p-icon">📥</div>
+                        <div class="p-title">Work Intake</div>
+                        <div class="p-desc">Standardized prioritization & DoR Gating</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">03</span>
+                        <div class="p-icon">👥</div>
+                        <div class="p-title">Squad Formation</div>
+                        <div class="p-desc">Balanced role ratios & rapid staffing</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">04</span>
+                        <div class="p-icon">⚡</div>
+                        <div class="p-title">Flex Mgmt</div>
+                        <div class="p-desc">Elastic scaling for demand spikes</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">05</span>
+                        <div class="p-icon">📊</div>
+                        <div class="p-title">Capacity Util.</div>
+                        <div class="p-desc">Real-time bandwidth monitoring</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">06</span>
+                        <div class="p-icon">🏗️</div>
+                        <div class="p-title">Project Gov.</div>
+                        <div class="p-desc">SDLC standards & PMI rigor</div>
+                    </div>
+
+                    <div class="pillar">
+                        <span class="p-num">07</span>
+                        <div class="p-icon">🎯</div>
+                        <div class="p-title">Execution</div>
+                        <div class="p-desc">SLA tracking & Quality Gates</div>
+                    </div>
+
+                </div>
+
+                <div class="foundation">
+                    Foundational Enablers: Automated Dashboards | Continuous Improvement Loop | SOW Compliance
+                </div>
+
+            </div>
+
+            <div class="sidebar">
+                <div style="font-size:14px; font-weight:bold; color:#0F355C; text-transform:uppercase; border-bottom:2px solid #0070C0; padding-bottom:5px;">Why This Model?</div>
+
+                <div class="benefit-box">
+                    <div class="b-title">1. Predictive Delivery</div>
+                    <div class="b-text">Moves from "Best Effort" to "Guaranteed Outcome" by linking capacity directly to demand signals.</div>
+                </div>
+
+                <div class="benefit-box">
+                    <div class="b-title">2. Cost Optimization</div>
+                    <div class="b-text">Flex Hour & Utilization pillars ensure you only pay for productive output, eliminating bench leakage.</div>
+                </div>
+
+                <div class="benefit-box">
+                    <div class="b-title">3. Quality Assurance</div>
+                    <div class="b-text">Embedded "DoD" gates in the Execution pillar reduce defect leakage by ~40% vs. industry avg.</div>
+                </div>
+
+                <div class="benefit-box">
+                    <div class="b-title">4. Strategic Alignment</div>
+                    <div class="b-text">Ensures every Squad Hour burned is directly mapped to a prioritized Asana Business Goal.</div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div class="kicker">"Structure drives Behavior. This governance model aligns daily Squad behaviors with Strategic Outcomes."</div>
+        </div>
+
+    </div>
+
+</body>
+</html>
